@@ -166,6 +166,26 @@ print(CM)
 ##knitr::kable(CM)
 ```
 
+We apply sufficiency (calibration) to German credit data. Then it's necessary to fit an Isotonic Regression for calibration.
+The statistical relationship for this data set fits the calibration case. It applied client's data to get a label, then using the label to predict the outcome. However, the preset label is unfair especially for cases like loan and credit.
+
+```{r}
+# Fit a logistic Model First
+model <- glm(BAD ~ ., data = germancredit, family = binomial())
+germancredit$predicted_prob <- predict(model, newdata = germancredit, type = "response")
+
+# Convert "BAD" to a binary numerical variable
+germancredit$BAD_numeric <- as.numeric(germancredit$BAD) - 1
+
+# Fit a calibration model
+cal_model <- lrm(BAD_numeric ~ predicted_prob, data = germancredit, x = TRUE, y = TRUE)
+
+# Plot
+cal_curve <- calibrate(cal_model, method = "boot", B = 1000)
+plot(cal_curve)
+
+```
+
 
 ### COMPAS
 
